@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VillageBuilder", "VillageBuilder\VillageBuilder.csproj", "{EB493D8C-D77F-4704-BFB0-190ADCE7CAA5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB493D8C-D77F-4704-BFB0-190ADCE7CAA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB493D8C-D77F-4704-BFB0-190ADCE7CAA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB493D8C-D77F-4704-BFB0-190ADCE7CAA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB493D8C-D77F-4704-BFB0-190ADCE7CAA5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {14C186F1-6BA2-4A4D-B48D-5BEB00857C8D}
+	EndGlobalSection
+EndGlobal
