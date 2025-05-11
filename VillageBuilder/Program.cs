@@ -1,21 +1,17 @@
 ﻿using Raylib_cs;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Numerics;
+using System.Security.Cryptography;
 using VillageBuilder;
 
 /* TO DO
-    1. IMPROVE TERRAIN GEN
     2. ADD MENU AND GUI
     3. IMPLEMENT BUILDING 
     4. STEAL SOME MODELS
     5. AI
     6. MUSIC
     7. ENEMIES
-
-
-
-
-
 
 */
 namespace VillageBuilder
@@ -42,6 +38,8 @@ namespace VillageBuilder
                 for (int x = 0; x < GameConfig.GridWidth; x++)
                 {
                     grid[x, y] = new Tile();
+                    grid[x, y].Position.X = x;
+                    grid[x, y].Position.Y = y;
                 }
             }
             GenerateTerrain(grid);
@@ -122,80 +120,63 @@ namespace VillageBuilder
             {
                 item.Type = TileType.Grassland;
             }
+            
+            for (int i = 0; i < 15; i++)
+            {
+                int lakeX = rng.Next(10, GameConfig.GridWidth - 10);
+                int lakeY = rng.Next(10, GameConfig.GridHeight - 10);
+                int radius = rng.Next(5, 12);
+                GenerateBlob(grid, lakeX, lakeY, radius, TileType.Forest);
+            }
+            for (int i = 0; i < 11; i++)
+            {
+                int lakeX = rng.Next(10, GameConfig.GridWidth - 10);
+                int lakeY = rng.Next(10, GameConfig.GridHeight - 10);
+                int radius = rng.Next(5, 12);
+                GenerateBlob(grid, lakeX, lakeY, radius, TileType.Rock);
+            }
             for (int i = 0; i < 10; i++)
             {
                 int lakeX = rng.Next(10, GameConfig.GridWidth - 10);
                 int lakeY = rng.Next(10, GameConfig.GridHeight - 10);
-                int radius = rng.Next(3, 7);
-                GenerateLake(grid, lakeX, lakeY, radius);
+                int radius = rng.Next(5, 12);
+                GenerateBlob(grid, lakeX, lakeY, radius, TileType.Water);
             }
-            for (int i = 0; i < 12; i++)
-            {
-                int lakeX = rng.Next(10, GameConfig.GridWidth - 10);
-                int lakeY = rng.Next(10, GameConfig.GridHeight - 10);
-                int radius = rng.Next(3, 7);
-                GenerateForest(grid, lakeX, lakeY, radius);
-            }
-            for (int i = 0; i < 9; i++)
-            {
-                int lakeX = rng.Next(10, GameConfig.GridWidth - 10);
-                int lakeY = rng.Next(10, GameConfig.GridHeight - 10);
-                int radius = rng.Next(3, 7);
-                GenerateRocks(grid, lakeX, lakeY, radius);
-            }
-
         }
-        static void GenerateLake(Tile[,] grid, int centerX, int centerY, int radius)
+        static void GenerateBlob(Tile[,] grid, int startX, int startY, int maxDepth, TileType type)
         {
-            for (int y = -radius; y <= radius; y++)
-            {
-                for (int x = -radius; x <= radius; x++)
-                {
-                    int gx = centerX + x;
-                    int gy = centerY + y;
+            Random rng = new Random();
+            Queue<(int x, int y, int depth)> queue = new Queue<(int x, int y, int depth)>();
+            HashSet<(int, int)> visited = new HashSet<(int, int)>();
 
-                    if (gx >= 0 && gx < GameConfig.GridWidth && gy >= 0 && gy < GameConfig.GridHeight)
+            queue.Enqueue((startX, startY, 0));
+            visited.Add((startX, startY));
+
+            while (queue.Count > 0)
+            {
+                var (x, y, depth) = queue.Dequeue();
+                if (x < 0 || y < 0 || x >= GameConfig.GridWidth || y >= GameConfig.GridHeight)
+                    continue;
+
+                // Spread probability decreases with depth
+                float spreadChance = 1f - (depth / (float)maxDepth);
+                if (spreadChance <= 0) continue;
+
+                // Actually set the tile
+                grid[x, y].Type = type;
+
+                // Try to spread to neighbors
+                foreach (var (nx, ny) in TileHelper.GetNeighbors(x, y))
+                {
+                    if (!visited.Contains((nx, ny)) && rng.NextDouble() < spreadChance)
                     {
-                        if (x * x + y * y <= radius * radius)
-                            grid[gx, gy].Type = TileType.Water;
+                        queue.Enqueue((nx, ny, depth + 1));
+                        visited.Add((nx, ny));
                     }
                 }
             }
         }
-        static void GenerateRocks(Tile[,] grid, int centerX, int centerY, int radius)
-        {
-            for (int y = -radius; y <= radius; y++)
-            {
-                for (int x = -radius; x <= radius; x++)
-                {
-                    int gx = centerX + x;
-                    int gy = centerY + y;
-
-                    if (gx >= 0 && gx < GameConfig.GridWidth && gy >= 0 && gy < GameConfig.GridHeight)
-                    {
-                        if (x * x + y * y <= radius * radius)
-                            grid[gx, gy].Type = TileType.Rock;
-                    }
-                }
-            }
-        }
-        static void GenerateForest(Tile[,] grid, int centerX, int centerY, int radius)
-        {
-            for (int y = -radius; y <= radius; y++)
-            {
-                for (int x = -radius; x <= radius; x++)
-                {
-                    int gx = centerX + x;
-                    int gy = centerY + y;
-
-                    if (gx >= 0 && gx < GameConfig.GridWidth && gy >= 0 && gy < GameConfig.GridHeight)
-                    {
-                        if (x * x + y * y <= radius * radius)
-                            grid[gx, gy].Type = TileType.Forest;
-                    }
-                }
-            }
-        }
+        
 
     }
 
