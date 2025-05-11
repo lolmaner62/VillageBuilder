@@ -23,6 +23,7 @@ namespace VillageBuilder
         {
             Random rng = new Random();
             Raylib.InitWindow(GameConfig.ScreenWidth, GameConfig.ScreenHeight, "Village Builder");
+            ResourceManager.Init();
             Raylib.ToggleFullscreen();
             Raylib.SetTargetFPS(60);
             Camera2D camera = new Camera2D
@@ -107,6 +108,14 @@ namespace VillageBuilder
                 }
                 
                 Raylib.EndMode2D();
+                string resourceText =
+                $"Wood: {ResourceManager.Get(ResourceType.Wood)}  " +
+                $"Stone: {ResourceManager.Get(ResourceType.Stone)}  " +
+                $"Food: {ResourceManager.Get(ResourceType.Food)}";
+
+                int textWidth = Raylib.MeasureText(resourceText, 20);
+                Raylib.DrawText(resourceText, GameConfig.ScreenWidth - textWidth - 20, 10, 20, Color.DARKBROWN);
+
                 Raylib.DrawText("WASD to move | Q/E to zoom", 10, 10, 20, Color.DARKGRAY);
                 Raylib.EndDrawing();
             }
@@ -158,7 +167,7 @@ namespace VillageBuilder
                 if (x < 0 || y < 0 || x >= GameConfig.GridWidth || y >= GameConfig.GridHeight)
                     continue;
 
-                // Spread probability decreases with depth
+               
                 float spreadChance = 1f - (depth / (float)maxDepth);
                 if (spreadChance <= 0) continue;
 
