@@ -18,14 +18,19 @@ namespace VillageBuilder
 {
     internal class Program
     {
-        static float camSpeed = 500 * Raylib.GetFrameTime();
+        static List<Building> placesBuidlings = new();
+
+        static BuildingType selectedBuilding = BuildingType.None;
+        
         static void Main(string[] args)
         {
+            var BuildingTypeValues = Enum.GetValues<BuildingType>();
             Random rng = new Random();
             Raylib.InitWindow(GameConfig.ScreenWidth, GameConfig.ScreenHeight, "Village Builder");
             ResourceManager.Init();
             Raylib.ToggleFullscreen();
             Raylib.SetTargetFPS(60);
+            
             Camera2D camera = new Camera2D
             {
                 target = new Vector2(GameConfig.GridWidth * GameConfig.TileSize / 2f, GameConfig.GridHeight * GameConfig.TileSize / 2f),
@@ -46,6 +51,7 @@ namespace VillageBuilder
             GenerateTerrain(grid);
             while (!Raylib.WindowShouldClose())
             {
+                float camSpeed = 500 * Raylib.GetFrameTime();
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
                 {
                     camera.target.Y -= camSpeed;
@@ -117,6 +123,38 @@ namespace VillageBuilder
                 Raylib.DrawText(resourceText, GameConfig.ScreenWidth - textWidth - 20, 10, 20, Color.DARKBROWN);
 
                 Raylib.DrawText("WASD to move | Q/E to zoom", 10, 10, 20, Color.DARKGRAY);
+                int barHeight = 100;
+                Rectangle uiBar = new Rectangle(0, GameConfig.ScreenHeight - barHeight, GameConfig.ScreenWidth, barHeight);
+                Raylib.DrawRectangleRec(uiBar, Color.LIGHTGRAY);
+                Raylib.DrawRectangleLinesEx(uiBar, 2, Color.DARKGRAY);
+
+                // Example building buttons
+                
+                for (int i = 1; i < BuildingTypeValues.Length; i++)
+                {
+                    int buttonWidth = 100;
+                    int buttonHeight = 80;
+                    int spacing = 20;
+                    int x = -100 + i * (buttonWidth + spacing);
+                    int y = GameConfig.ScreenHeight - barHeight + 10;
+
+                    Rectangle buttonRect = new Rectangle(x, y, buttonWidth, buttonHeight);
+
+                    // Change color if selected
+                    Color buttonColor = selectedBuilding == (BuildingType)(i + 1) ? Color.GREEN : Color.BEIGE;
+                    Raylib.DrawRectangleRec(buttonRect, buttonColor);
+                    Raylib.DrawRectangleLinesEx(buttonRect, 2, Color.BROWN);
+                    Raylib.DrawText(BuildingTypeValues[i].ToString(), x + 10, y + 30, 20, Color.DARKBROWN);
+
+                    // Handle mouse click
+                    if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_LEFT_BUTTON) &&
+                        Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), buttonRect))
+                    {
+
+                        selectedBuilding = selectedBuilding == (BuildingType)(i + 1) ? selectedBuilding = BuildingType.None : selectedBuilding = (BuildingType)(i + 1);
+                    }
+                }
+
                 Raylib.EndDrawing();
             }
             Raylib.CloseWindow();
@@ -183,6 +221,13 @@ namespace VillageBuilder
                         visited.Add((nx, ny));
                     }
                 }
+            }
+        }
+        static void TickBuildings()
+        {
+            foreach (var building in placesBuidlings)
+            {
+                building.Tick();
             }
         }
         
