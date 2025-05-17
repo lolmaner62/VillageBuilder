@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Numerics;
 using System.Security.Cryptography;
 using VillageBuilder;
+using VillageBuilder.VillageBuilder;
 
 /* TO DO
     2. ADD MENU AND GUI
@@ -18,7 +19,7 @@ namespace VillageBuilder
 {
     internal class Program
     {
-        static List<Building> placesBuidlings = new();
+        static List<Building> placedBuidlings = new();
 
         static BuildingType selectedBuilding = BuildingType.None;
         
@@ -51,6 +52,7 @@ namespace VillageBuilder
             GenerateTerrain(grid);
             while (!Raylib.WindowShouldClose())
             {
+
                 float camSpeed = 500 * Raylib.GetFrameTime();
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
                 {
@@ -112,7 +114,15 @@ namespace VillageBuilder
 
                     }
                 }
-                
+                foreach (var building in placedBuidlings)
+                {
+                    var pos = building.Position;
+                    Rectangle rect = new Rectangle(pos.X * GameConfig.TileSize, pos.Y * GameConfig.TileSize, GameConfig.TileSize, GameConfig.TileSize);
+                    Raylib.DrawRectangleRec(rect, Color.DARKBROWN); 
+                    Raylib.DrawText(building.Type.ToString(), (int)rect.x + 5, (int)rect.y + 5, 10, Color.WHITE);
+                }
+
+
                 Raylib.EndMode2D();
                 string resourceText =
                 $"Wood: {ResourceManager.Get(ResourceType.Wood)}  " +
@@ -128,9 +138,8 @@ namespace VillageBuilder
                 Raylib.DrawRectangleRec(uiBar, Color.LIGHTGRAY);
                 Raylib.DrawRectangleLinesEx(uiBar, 2, Color.DARKGRAY);
 
-                // Example building buttons
                 
-                for (int i = 1; i < BuildingTypeValues.Length; i++)
+                for (int i = 0; i < BuildingTypeValues.Length; i++)
                 {
                     int buttonWidth = 100;
                     int buttonHeight = 80;
@@ -140,21 +149,50 @@ namespace VillageBuilder
 
                     Rectangle buttonRect = new Rectangle(x, y, buttonWidth, buttonHeight);
 
-                    // Change color if selected
-                    Color buttonColor = selectedBuilding == (BuildingType)(i + 1) ? Color.GREEN : Color.BEIGE;
+                    Color buttonColor = selectedBuilding == (BuildingType)(i) ? Color.GREEN : Color.BEIGE;
                     Raylib.DrawRectangleRec(buttonRect, buttonColor);
                     Raylib.DrawRectangleLinesEx(buttonRect, 2, Color.BROWN);
                     Raylib.DrawText(BuildingTypeValues[i].ToString(), x + 10, y + 30, 20, Color.DARKBROWN);
 
-                    // Handle mouse click
                     if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_LEFT_BUTTON) &&
                         Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), buttonRect))
                     {
 
-                        selectedBuilding = selectedBuilding == (BuildingType)(i + 1) ? selectedBuilding = BuildingType.None : selectedBuilding = (BuildingType)(i + 1);
+                        selectedBuilding = selectedBuilding == (BuildingType)(i ) ? selectedBuilding = BuildingType.None : selectedBuilding = (BuildingType)(i);
                     }
                 }
+                if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_LEFT_BUTTON) && selectedBuilding != BuildingType.None)
+                {
+                    Vector2 Pos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), camera);
+                    int tileX = (int)(Pos.X / GameConfig.TileSize);
+                    int tileY = (int)(Pos.Y / GameConfig.TileSize);
+                    if(tileX >= 0 && tileX < GameConfig.GridWidth && tileY >= 0 && tileY < GameConfig.GridHeight)
+                    {
+                        Tile targetTile = grid[tileX, tileY];
+                        if (targetTile.Type == TileType.Grassland && targetTile.Building == null)
+                        {
+                            Vector2Int position = new Vector2Int(tileX, tileY);
+                            Building newBuilding = selectedBuilding switch
+                            {
+                                BuildingType.House => new House(position),
+                                BuildingType.Farm => new Farm(position),
+                                BuildingType.Quarry => new Quarry(position),
+                                BuildingType.None => throw new Exception("Nemas vybrano"),
+                                _ => throw new Exception("Not possible Man")
 
+
+                            };
+                            if (newBuilding != null)
+                            {
+                                targetTile.Building = newBuilding;
+                                newBuilding.OnPlaced(grid);
+                                placedBuidlings.Add(newBuilding);
+                                
+                            }
+                        }
+                            
+                    }
+                }
                 Raylib.EndDrawing();
             }
             Raylib.CloseWindow();
@@ -225,7 +263,7 @@ namespace VillageBuilder
         }
         static void TickBuildings()
         {
-            foreach (var building in placesBuidlings)
+            foreach (var building in placedBuidlings)
             {
                 building.Tick();
             }

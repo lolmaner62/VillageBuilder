@@ -13,5 +13,6 @@ namespace VillageBuilder
     {
         public TileType Type;
         public Vector2Int Position;
+        public Building ?Building;
     }
 }

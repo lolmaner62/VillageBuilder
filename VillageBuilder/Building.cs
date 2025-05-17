@@ -8,7 +8,7 @@ using VillageBuilder;
 using VillageBuilder.VillageBuilder;
 namespace VillageBuilder
 {
-    abstract class Building
+    public abstract class Building
     {
         public BuildingType Type { get; protected set; }
         public Vector2Int Position { get; private set; }
